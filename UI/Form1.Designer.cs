@@ -28,6 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Form1));
             tabControl1 = new TabControl();
             tabPage1 = new TabPage();
             button9 = new Button();
@@ -55,6 +56,15 @@
             dataGridView3 = new DataGridView();
             button5 = new Button();
             label3 = new Label();
+            tabPage4 = new TabPage();
+            label7 = new Label();
+            pictureBox1 = new PictureBox();
+            lblStatus = new Label();
+            Migration = new Button();
+            Save = new Button();
+            ServerName = new TextBox();
+            label6 = new Label();
+            saveFileDialog1 = new SaveFileDialog();
             tabControl1.SuspendLayout();
             tabPage1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)dataGridView1).BeginInit();
@@ -62,6 +72,8 @@
             ((System.ComponentModel.ISupportInitialize)dataGridView2).BeginInit();
             tabPage3.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)dataGridView3).BeginInit();
+            tabPage4.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)pictureBox1).BeginInit();
             SuspendLayout();
             // 
             // tabControl1
@@ -69,6 +81,7 @@
             tabControl1.Controls.Add(tabPage1);
             tabControl1.Controls.Add(tabPage2);
             tabControl1.Controls.Add(tabPage3);
+            tabControl1.Controls.Add(tabPage4);
             tabControl1.Dock = DockStyle.Fill;
             tabControl1.Location = new Point(0, 0);
             tabControl1.Margin = new Padding(3, 4, 3, 4);
@@ -118,6 +131,7 @@
             // 
             // dataGridView1
             // 
+            dataGridView1.BackgroundColor = SystemColors.ControlLight;
             dataGridView1.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             dataGridView1.Dock = DockStyle.Bottom;
             dataGridView1.Location = new Point(3, 86);
@@ -199,6 +213,7 @@
             // 
             // dataGridView2
             // 
+            dataGridView2.BackgroundColor = SystemColors.ControlLight;
             dataGridView2.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             dataGridView2.Dock = DockStyle.Bottom;
             dataGridView2.Location = new Point(3, 75);
@@ -339,6 +354,7 @@
             // 
             // dataGridView3
             // 
+            dataGridView3.BackgroundColor = SystemColors.ControlLight;
             dataGridView3.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             dataGridView3.Dock = DockStyle.Bottom;
             dataGridView3.Location = new Point(0, 152);
@@ -370,6 +386,89 @@
             label3.TabIndex = 10;
             label3.Text = "Personel";
             // 
+            // tabPage4
+            // 
+            tabPage4.Controls.Add(label7);
+            tabPage4.Controls.Add(pictureBox1);
+            tabPage4.Controls.Add(lblStatus);
+            tabPage4.Controls.Add(Migration);
+            tabPage4.Controls.Add(Save);
+            tabPage4.Controls.Add(ServerName);
+            tabPage4.Controls.Add(label6);
+            tabPage4.Location = new Point(4, 29);
+            tabPage4.Name = "tabPage4";
+            tabPage4.Size = new Size(1423, 794);
+            tabPage4.TabIndex = 3;
+            tabPage4.Text = "Veritabanı İşlemleri";
+            tabPage4.UseVisualStyleBackColor = true;
+            // 
+            // label7
+            // 
+            label7.AutoSize = true;
+            label7.Font = new Font("Segoe UI", 9F, FontStyle.Bold, GraphicsUnit.Point);
+            label7.ForeColor = Color.Red;
+            label7.Location = new Point(465, 27);
+            label7.Name = "label7";
+            label7.Size = new Size(774, 160);
+            label7.TabIndex = 14;
+            label7.Text = resources.GetString("label7.Text");
+            // 
+            // pictureBox1
+            // 
+            pictureBox1.Image = Properties.Resources.cs;
+            pictureBox1.Location = new Point(22, 27);
+            pictureBox1.Name = "pictureBox1";
+            pictureBox1.Size = new Size(437, 292);
+            pictureBox1.SizeMode = PictureBoxSizeMode.StretchImage;
+            pictureBox1.TabIndex = 13;
+            pictureBox1.TabStop = false;
+            // 
+            // lblStatus
+            // 
+            lblStatus.AutoSize = true;
+            lblStatus.Location = new Point(465, 389);
+            lblStatus.Name = "lblStatus";
+            lblStatus.Size = new Size(0, 20);
+            lblStatus.TabIndex = 12;
+            // 
+            // Migration
+            // 
+            Migration.BackColor = Color.SteelBlue;
+            Migration.ForeColor = Color.White;
+            Migration.Location = new Point(329, 388);
+            Migration.Name = "Migration";
+            Migration.Size = new Size(130, 58);
+            Migration.TabIndex = 11;
+            Migration.Text = "Veritabanı Oluştur";
+            Migration.UseVisualStyleBackColor = false;
+            Migration.Click += Migration_Click;
+            // 
+            // Save
+            // 
+            Save.Location = new Point(184, 388);
+            Save.Name = "Save";
+            Save.Size = new Size(130, 58);
+            Save.TabIndex = 10;
+            Save.Text = "Kaydet";
+            Save.UseVisualStyleBackColor = true;
+            Save.Click += Save_Click;
+            // 
+            // ServerName
+            // 
+            ServerName.Location = new Point(184, 338);
+            ServerName.Name = "ServerName";
+            ServerName.Size = new Size(275, 27);
+            ServerName.TabIndex = 3;
+            // 
+            // label6
+            // 
+            label6.AutoSize = true;
+            label6.Location = new Point(22, 341);
+            label6.Name = "label6";
+            label6.Size = new Size(102, 20);
+            label6.TabIndex = 2;
+            label6.Text = "Sunucu Adresi";
+            // 
             // Form1
             // 
             AutoScaleDimensions = new SizeF(8F, 20F);
@@ -390,6 +489,9 @@
             tabPage3.ResumeLayout(false);
             tabPage3.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)dataGridView3).EndInit();
+            tabPage4.ResumeLayout(false);
+            tabPage4.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)pictureBox1).EndInit();
             ResumeLayout(false);
         }
 
@@ -422,5 +524,14 @@
         private Button button7;
         private Button button8;
         private Button button9;
+        private SaveFileDialog saveFileDialog1;
+        private TabPage tabPage4;
+        private Button Migration;
+        private Button Save;
+        private TextBox ServerName;
+        private Label label6;
+        private Label lblStatus;
+        private Label label7;
+        private PictureBox pictureBox1;
     }
 }

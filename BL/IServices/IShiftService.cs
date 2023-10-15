@@ -1,4 +1,5 @@
-﻿using OL;
+﻿using ClosedXML.Excel;
+using OL;
 using OL.DTOs;
 using System;
 using System.Collections.Generic;
@@ -11,6 +12,6 @@ namespace BL.IServices
     public interface IShiftService :IService<Shifts>
     {
         Task<List<ShiftDto>> GetAllShiftsAsync();
-        string ExportWeeklyShiftDataToExcelUsingClosedXML();
+        XLWorkbook ExportWeeklyShiftDataToExcelUsingClosedXML();
     }
 }

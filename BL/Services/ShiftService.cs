@@ -95,7 +95,7 @@ namespace BL.Services
         //    excelApp.Quit();
         //}
 
-        public string ExportWeeklyShiftDataToExcelUsingClosedXML()
+        public XLWorkbook ExportWeeklyShiftDataToExcelUsingClosedXML()
         {
             // Hafta sayacı
             int weekCounter = 1;
@@ -108,61 +108,59 @@ namespace BL.Services
                 startDate = startDate.AddDays(-1);
             }
 
-            using (var workbook = new XLWorkbook())
+            var workbook = new XLWorkbook();
+            while (startDate.Month == DateTime.Now.Month)
             {
-                while (startDate.Month == DateTime.Now.Month)
+                DateTime endDate = startDate.AddDays(6);
+
+                // Haftalık veriyi çekmek için LINQ sorgusu oluşturun ve verileri alın.
+                var weeklyShiftData = _context.Shifts
+                    .Include(s => s.Employee)
+                    .Include(s => s.Machine)
+                    .Where(s => s.ShiftDate >= startDate && s.ShiftDate <= endDate)
+                    .ToList();
+
+                // Excel sayfası oluşturun ve adını haftanın başlangıç ve bitiş tarihleri olarak ayarlayın.
+                var worksheet = workbook.Worksheets.Add($"Hafta_{weekCounter}_{startDate.ToShortDateString()}_{endDate.ToShortDateString()}");
+
+                // Başlık satırını ekleyin.
+                worksheet.Cell(1, 2).Value = "Gün / Makine";
+                for (int day = 0; day < 7; day++)
                 {
-                    DateTime endDate = startDate.AddDays(6);
-
-                    // Haftalık veriyi çekmek için LINQ sorgusu oluşturun ve verileri alın.
-                    var weeklyShiftData = _context.Shifts
-                        .Include(s => s.Employee)
-                        .Include(s => s.Machine)
-                        .Where(s => s.ShiftDate >= startDate && s.ShiftDate <= endDate)
-                        .ToList();
-
-                    // Excel sayfası oluşturun ve adını haftanın başlangıç ve bitiş tarihleri olarak ayarlayın.
-                    var worksheet = workbook.Worksheets.Add($"Hafta_{weekCounter}_{startDate.ToShortDateString()}_{endDate.ToShortDateString()}");
-
-                    // Başlık satırını ekleyin.
-                    worksheet.Cell(1, 2).Value = "Gün / Makine";
-                    for (int day = 0; day < 7; day++)
-                    {
-                        worksheet.Cell(1, day + 3).Value = startDate.AddDays(day).ToShortDateString();
-                    }
-
-                    // Makineleri ve personelleri doldurun.
-                    int row = 2;
-                    foreach (var machine in weeklyShiftData.Select(s => s.Machine.MachineName).Distinct())
-                    {
-                        worksheet.Cell(row, 2).Value = machine;
-
-                        for (int day = 0; day < 7; day++)
-                        {
-                            var date = startDate.AddDays(day);
-                            var employeesForMachineAndDay = weeklyShiftData
-                                .Where(s => s.Machine.MachineName == machine && s.ShiftDate.Date == date)
-                                .Select(s => s.Employee.EmployeeName);
-
-                            worksheet.Cell(row, day + 3).Value = string.Join(", ", employeesForMachineAndDay);
-                        }
-
-                        row++;
-                    }
-
-                    // Hafta sayacını ve başlangıç tarihini güncelle
-                    weekCounter++;
-                    startDate = endDate.AddDays(1);
-
-                    // Excel dosyasını kaydetmek yerine her hafta için yeni bir sayfa oluşturun
+                    worksheet.Cell(1, day + 3).Value = startDate.AddDays(day).ToShortDateString();
                 }
 
-                // Excel dosyasını kaydedin.
-                string excelFilePath = "C:\\Users\\yunus\\OneDrive\\Masaüstü\\MonthlyMachineList.xlsx"; // Dosya yolunu uygun şekilde değiştirin.
-                workbook.SaveAs(excelFilePath);
+                // Makineleri ve personelleri doldurun.
+                int row = 2;
+                foreach (var machine in weeklyShiftData.Select(s => s.Machine.MachineName).Distinct())
+                {
+                    worksheet.Cell(row, 2).Value = machine;
 
-                return "Excel dosyası oluşturuldu. Dosya konumu: " + excelFilePath;
+                    for (int day = 0; day < 7; day++)
+                    {
+                        var date = startDate.AddDays(day);
+                        var employeesForMachineAndDay = weeklyShiftData
+                            .Where(s => s.Machine.MachineName == machine && s.ShiftDate.Date == date)
+                            .Select(s => s.Employee.EmployeeName);
+
+                        worksheet.Cell(row, day + 3).Value = string.Join(", ", employeesForMachineAndDay);
+                    }
+
+                    row++;
+                }
+
+                // Hafta sayacını ve başlangıç tarihini güncelle
+                weekCounter++;
+                startDate = endDate.AddDays(1);
+
+                // Excel dosyasını kaydetmek yerine her hafta için yeni bir sayfa oluşturun
             }
+
+            // Excel dosyasını kaydedin.
+            //string excelFilePath = "C:\\Users\\yunus\\OneDrive\\Masaüstü\\MonthlyMachineList.xlsx"; // Dosya yolunu uygun şekilde değiştirin.
+            //workbook.SaveAs(excelFilePath);
+
+            return workbook;
         }
     }
 }

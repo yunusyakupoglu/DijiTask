@@ -1,5 +1,8 @@
 using BL.IServices;
 using OL;
+using System.Configuration;
+using System.Timers;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement.StartPanel;
 
 namespace UI
 {
@@ -11,6 +14,8 @@ namespace UI
         int selectedEmployeeId;
         int selectedMachineId;
         int selectedShiftId;
+        private System.Timers.Timer _statusTimer; // Timer nesnesi
+
         public Form1(IEmployeeService employeeService, IMachineService machineService, IShiftService shiftService)
         {
             InitializeComponent();
@@ -19,25 +24,43 @@ namespace UI
             _shiftService = shiftService;
         }
 
+
         private async void Form1_Load(object sender, EventArgs e)
         {
-            dataGridView1.DataSource = await _employeeService.GetAllAsync();
-            dataGridView2.DataSource = await _machineService.GetAllAsync();
-            dataGridView3.DataSource = await _shiftService.GetAllShiftsAsync();
-            cmbEmployees.DataSource = await _employeeService.GetAllEmployeeNamesAsync();
-            cmbMachines.DataSource = await _machineService.GetAllMachineNamesAsync();
-            dataGridView3.Columns["Id"].Visible = false;
-            dataGridView3.Columns["ShiftId"].Visible = false;
-            dataGridView2.Columns["Id"].Visible = false;
-            dataGridView1.Columns["Id"].Visible = false;
-            dataGridView3.Columns["EmployeeId"].Visible = false;
-            dataGridView3.Columns["MachineId"].Visible = false;
+            var cs = LoadConnectionStringParameters();
 
-            dataGridView1.Columns["EmployeeName"].HeaderText = "Ad Soyad";
-            dataGridView2.Columns["MachineName"].HeaderText = "Makine";
-            dataGridView3.Columns["ShiftDate"].HeaderText = "Tarih";
-            dataGridView3.Columns["Employee"].HeaderText = "Ad Soyad";
-            dataGridView3.Columns["Machine"].HeaderText = "Makine";
+            using (var dbContext = new DAL.AppDbContext())
+            {
+                bool isDatabaseExists = dbContext.Database.CanConnect();
+
+                if (isDatabaseExists)
+                {
+                    dataGridView1.DataSource = await _employeeService.GetAllAsync();
+                    dataGridView2.DataSource = await _machineService.GetAllAsync();
+                    dataGridView3.DataSource = await _shiftService.GetAllShiftsAsync();
+                    cmbEmployees.DataSource = await _employeeService.GetAllEmployeeNamesAsync();
+                    cmbMachines.DataSource = await _machineService.GetAllMachineNamesAsync();
+                    dataGridView3.Columns["Id"].Visible = false;
+                    dataGridView3.Columns["ShiftId"].Visible = false;
+                    dataGridView2.Columns["Id"].Visible = false;
+                    dataGridView1.Columns["Id"].Visible = false;
+                    dataGridView3.Columns["EmployeeId"].Visible = false;
+                    dataGridView3.Columns["MachineId"].Visible = false;
+
+                    dataGridView1.Columns["EmployeeName"].HeaderText = "Ad Soyad";
+                    dataGridView2.Columns["MachineName"].HeaderText = "Makine";
+                    dataGridView3.Columns["ShiftDate"].HeaderText = "Tarih";
+                    dataGridView3.Columns["Employee"].HeaderText = "Ad Soyad";
+                    dataGridView3.Columns["Machine"].HeaderText = "Makine";
+                }
+                else if (!isDatabaseExists)
+                {
+                    tabControl1.SelectedTab = tabPage4;
+                }
+
+
+            }
+
 
         }
 
@@ -103,9 +126,20 @@ namespace UI
 
         private void button4_Click(object sender, EventArgs e)
         {
-            var result = _shiftService.ExportWeeklyShiftDataToExcelUsingClosedXML();
-            MessageBox.Show(result);
+            var workbook = _shiftService.ExportWeeklyShiftDataToExcelUsingClosedXML();
+            using (var saveFileDialog = new SaveFileDialog())
+            {
+                saveFileDialog.Filter = "Excel Dosyasý|*.xlsx";
+                saveFileDialog.Title = "Excel Dosyasýný Kaydet";
+                saveFileDialog.FileName = "WeeklyShiftData.xlsx"; // Varsayýlan dosya adý
 
+                if (saveFileDialog.ShowDialog() == DialogResult.OK)
+                {
+                    string excelFilePath = saveFileDialog.FileName;
+                    workbook.SaveAs(excelFilePath);
+                    MessageBox.Show("Excel dosyasý baþarýyla kaydedildi. Dosya konumu: " + excelFilePath);
+                }
+            }
         }
 
         private async void button2_Click(object sender, EventArgs e)
@@ -234,6 +268,98 @@ namespace UI
                 dataGridView1.DataSource = await _employeeService.GetAllAsync();
                 dataGridView3.DataSource = await _shiftService.GetAllShiftsAsync();
                 MessageBox.Show("Personel verisi silindi.");
+            }
+        }
+
+        private void Save_Click(object sender, EventArgs e)
+        {
+            string server = ServerName.Text;
+
+            // Build the new connection string
+            string newConnectionString = $"Server={server};Database=DijiTaskDB;Trusted_Connection=true;MultipleActiveResultSets=true;TrustServerCertificate=true;";
+
+            // Update the connection string in ConfigurationManager
+            var config = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
+            config.ConnectionStrings.ConnectionStrings["dijiTaskDb"].ConnectionString = newConnectionString;
+            config.Save(ConfigurationSaveMode.Modified);
+            ConfigurationManager.RefreshSection("connectionStrings");
+
+            MessageBox.Show("Baðlantý dizesi güncellendi.");
+        }
+
+        private string LoadConnectionStringParameters()
+        {
+            string connectionString = ConfigurationManager.ConnectionStrings["dijiTaskDb"].ConnectionString;
+
+            var builder = new System.Data.Common.DbConnectionStringBuilder();
+            builder.ConnectionString = connectionString;
+
+            if (builder.ContainsKey("Server"))
+                ServerName.Text = builder["Server"].ToString();
+            //if (builder.ContainsKey("Port"))
+            //    PortNumber.Text = builder["Port"].ToString();
+            //if (builder.ContainsKey("User Id"))
+            //    UserName.Text = builder["User Id"].ToString();
+            //if (builder.ContainsKey("Password"))
+            //    Password.Text = builder["Password"].ToString();
+            return connectionString;
+        }
+
+        private void Migration_Click(object sender, EventArgs e)
+        {
+            using (var dbContext = new DAL.AppDbContext())
+            {
+                bool isDatabaseExists = dbContext.Database.CanConnect();
+
+                if (isDatabaseExists)
+                {
+                    MessageBox.Show("Veritabaný zaten mevcut.", "Uyarý", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                }
+                else if (!isDatabaseExists)
+                {
+                    // Arayüzdeki öðeyi güncellemek için bir fonksiyon çaðýr
+                    UpdateStatusLabel("Veritabaný oluþturuluyor...");
+
+                    // Veritabanýný oluþtur veya güncelle
+                    dbContext.Database.EnsureCreated();
+
+                    // Arayüzdeki öðeyi güncellemek için bir fonksiyon çaðýr
+                    UpdateStatusLabel("Veritabaný oluþturma iþlemi baþarýyla tamamlandý.");
+
+                    // Timer'ý baþlat, 3 saniye sonra temizleme iþlemi yapacak
+                    StartClearTimer();
+                }
+
+
+            }
+        }
+
+        // Arayüzdeki öðeyi güncellemek için kullanýlacak fonksiyon
+        private void UpdateStatusLabel(string message)
+        {
+            // Örnek olarak, bir Label metni güncelleme
+            lblStatus.Text = message;
+            lblStatus.Update(); // Güncellemenin hemen görüntülenmesi için
+        }
+
+        private void StartClearTimer()
+        {
+            _statusTimer = new System.Timers.Timer(3000); // 3000 ms (3 saniye) sonra tetiklenecek
+            _statusTimer.Elapsed += ClearStatusLabel;
+            _statusTimer.AutoReset = false; // Tek seferlik tetikleme
+            _statusTimer.Start();
+        }
+
+        private void ClearStatusLabel(object sender, ElapsedEventArgs e)
+        {
+            // Timer tarafýndan çaðrýldýðýnda Label'ý temizle
+            if (InvokeRequired)
+            {
+                Invoke(new Action(() => lblStatus.Text = ""));
+            }
+            else
+            {
+                lblStatus.Text = "";
             }
         }
     }
